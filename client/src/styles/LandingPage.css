@@ -90,7 +90,8 @@
 .landing-page__hero-container {
   width: 100vw;
   height: 100vh;
-  padding-left: 2rem;
+  padding: 0 2rem;
   display: flex;
   align-items: center;
+  justify-content: center;
 }

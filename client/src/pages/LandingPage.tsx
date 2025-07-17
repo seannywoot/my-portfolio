@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import HeroSection from "./HeroSection";
 import MarqueeSection from "../components/MarqueeSection";
 import "../styles/LandingPage.css";
@@ -6,7 +6,7 @@ import "../styles/LandingPage.css";
 // Scroll configuration constants
 const SCROLL_CONFIG = {
   QUOTE_PHASE_END: 3, // viewport heights
-  HERO_TRANSITION_END: 4, // viewport heights  
+  HERO_TRANSITION_END: 4, // viewport heights
   HERO_STABLE_END: 5, // viewport heights
   TOTAL_SCROLL_HEIGHT: 6, // viewport heights
   QUOTE_ANIMATION_END: 2.5, // viewport heights for quote word animation
@@ -30,15 +30,9 @@ const QUOTE_CONFIG = {
 // TypeScript interfaces
 interface ScrollState {
   scrollY: number;
-  phase: 'landing' | 'transition' | 'hero' | 'vertical';
+  phase: "landing" | "transition" | "hero" | "vertical";
   horizontalProgress: number;
   isHeroFullyVisible: boolean;
-}
-
-interface ScrollPhaseInfo {
-  phase: ScrollState['phase'];
-  progress: number;
-  isTransitioning: boolean;
 }
 
 function LandingPage() {
@@ -64,7 +58,7 @@ function LandingPage() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleResize);
-    
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
@@ -88,57 +82,76 @@ function LandingPage() {
   ];
 
   const getWordOpacity = (index: number) => {
-    const scrollProgress = scrollY / (viewportHeight * SCROLL_CONFIG.QUOTE_ANIMATION_END);
+    const scrollProgress =
+      scrollY / (viewportHeight * SCROLL_CONFIG.QUOTE_ANIMATION_END);
     const wordThreshold = index * QUOTE_CONFIG.WORD_THRESHOLD_MULTIPLIER;
 
     if (scrollProgress < wordThreshold) {
       return QUOTE_CONFIG.BASE_OPACITY;
-    } else if (scrollProgress < wordThreshold + QUOTE_CONFIG.TRANSITION_DURATION) {
-      const transitionProgress = (scrollProgress - wordThreshold) / QUOTE_CONFIG.TRANSITION_DURATION;
-      return QUOTE_CONFIG.BASE_OPACITY + (QUOTE_CONFIG.FULL_OPACITY - QUOTE_CONFIG.BASE_OPACITY) * transitionProgress;
+    } else if (
+      scrollProgress <
+      wordThreshold + QUOTE_CONFIG.TRANSITION_DURATION
+    ) {
+      const transitionProgress =
+        (scrollProgress - wordThreshold) / QUOTE_CONFIG.TRANSITION_DURATION;
+      return (
+        QUOTE_CONFIG.BASE_OPACITY +
+        (QUOTE_CONFIG.FULL_OPACITY - QUOTE_CONFIG.BASE_OPACITY) *
+          transitionProgress
+      );
     } else {
       return QUOTE_CONFIG.FULL_OPACITY;
     }
   };
 
   // Get current scroll phase for debugging
-  const getScrollPhase = (): ScrollState['phase'] => {
+  const getScrollPhase = (): ScrollState["phase"] => {
     const quotePhaseEnd = viewportHeight * SCROLL_CONFIG.QUOTE_PHASE_END;
-    const heroTransitionEnd = viewportHeight * SCROLL_CONFIG.HERO_TRANSITION_END;
+    const heroTransitionEnd =
+      viewportHeight * SCROLL_CONFIG.HERO_TRANSITION_END;
     const heroStableEnd = viewportHeight * SCROLL_CONFIG.HERO_STABLE_END;
 
-    if (scrollY <= quotePhaseEnd) return 'landing';
-    if (scrollY <= heroTransitionEnd) return 'transition';
-    if (scrollY <= heroStableEnd) return 'hero';
-    return 'vertical';
+    if (scrollY <= quotePhaseEnd) return "landing";
+    if (scrollY <= heroTransitionEnd) return "transition";
+    if (scrollY <= heroStableEnd) return "hero";
+    return "vertical";
   };
 
   // Horizontal scroll with parallax layers
   const getHorizontalOffset = () => {
     const quotePhaseEnd = viewportHeight * SCROLL_CONFIG.QUOTE_PHASE_END;
-    const heroTransitionEnd = viewportHeight * SCROLL_CONFIG.HERO_TRANSITION_END;
+    const heroTransitionEnd =
+      viewportHeight * SCROLL_CONFIG.HERO_TRANSITION_END;
     const heroStableEnd = viewportHeight * SCROLL_CONFIG.HERO_STABLE_END;
 
     if (scrollY <= quotePhaseEnd) return 0;
-    if (scrollY >= heroStableEnd) return 100; // Hero fully visible, stop horizontal scroll
 
+    // Calculate horizontal progress during transition phase
     const horizontalScrollStart = scrollY - quotePhaseEnd;
     const horizontalScrollRange = heroTransitionEnd - quotePhaseEnd;
-    const horizontalProgress = Math.min(horizontalScrollStart / horizontalScrollRange, 1);
+    const horizontalProgress = Math.min(
+      horizontalScrollStart / horizontalScrollRange,
+      1
+    );
+
+    // Cap the horizontal offset at 100% during transition, then maintain it
+    const maxOffset = 100;
+    const currentOffset = horizontalProgress * maxOffset;
 
     // Development debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Scroll Debug:', {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Scroll Debug:", {
         scrollY,
         phase: getScrollPhase(),
         horizontalProgress: horizontalProgress * 100,
+        currentOffset,
         quotePhaseEnd,
         heroTransitionEnd,
-        heroStableEnd
+        heroStableEnd,
       });
     }
 
-    return horizontalProgress * 100;
+    return Math.min(currentOffset, maxOffset);
   };
 
   // Horizontal parallax effects for different layers during transition
@@ -154,13 +167,6 @@ function LandingPage() {
     const parallaxOffset = baseOffset * PARALLAX_CONFIG.QUOTE_SPEED;
     // Ensure parallax doesn't exceed bounds
     return Math.min(Math.max(parallaxOffset, 0), 120);
-  };
-
-  const getHeroParallax = () => {
-    const baseOffset = getHorizontalOffset();
-    const parallaxOffset = baseOffset * PARALLAX_CONFIG.HERO_SPEED;
-    // Ensure parallax doesn't exceed bounds
-    return Math.min(Math.max(parallaxOffset, 0), 90);
   };
 
   return (
@@ -258,13 +264,8 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* Hero Section with Parallax */}
-            <div
-              className="landing-page__hero-container"
-              style={{
-                transform: `translateX(-${getHeroParallax()}vw)`,
-              }}
-            >
+            {/* Hero Section */}
+            <div className="landing-page__hero-container">
               <HeroSection />
             </div>
           </div>
